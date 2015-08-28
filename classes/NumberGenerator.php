@@ -8,16 +8,12 @@ class NumberGenerator
 	 * @param number $windowSize
 	 * @param number $min
 	 */
-	public static function generate($max, $windowSize = 6, $filePath = '')
+	public static function generate($max, $windowSize, $filePath)
 	{
 		ini_set('max_execution_time', 0);
 		$numberPool = range(1, $max);
-		$results = array();
-		self::_sampling($numberPool, $windowSize, $results);
-		$return = array_keys($results);
-		if($filePath !== '')
-			file_put_contents($filePath, implode("\n", $return));
-		return $return;
+		file_put_contents($filePath, '');
+		self::_sampling($numberPool, $windowSize, $filePath);
 	}
 	/**
 	 * Generating the numbers, self looping
@@ -28,12 +24,15 @@ class NumberGenerator
 	 * @param unknown $perms
 	 *
 	 */
-	private static function _sampling($items, $windowSize, array &$results = array(), $perms = array())
+	private static function _sampling($items, $windowSize, $filePath, array &$results = array(), $perms = array())
 	{
 		if(count($perms) === $windowSize) {
 			sort($perms);
-			if(!array_key_exists(($key = join(',', $perms)), $results))
-				$results[$key] = $perms;
+			$combo = $key = join(',', $perms);
+			if(!in_array($combo, $results)) {
+				$results[] = $combo;
+				file_put_contents($filePath, $combo . "\n", FILE_APPEND);
+			}
 		}
 		if (!empty ( $items )) {
 			for($i = count ( $items ) - 1; $i >= 0; -- $i) {
@@ -41,7 +40,7 @@ class NumberGenerator
 				$newperms = $perms;
 				list ( $foo ) = array_splice ( $newitems, $i, 1 );
 				array_unshift ( $newperms, $foo );
-				self::_sampling ( $newitems, $windowSize, $results, $newperms);
+				self::_sampling ( $newitems, $windowSize, $filePath, $results, $newperms);
 			}
 		}
 	}
